@@ -49,7 +49,7 @@ def train():
 
 def predict(img,knn_clf, distance_threshold=0.48):
     
-    t1=time.time() 
+
     # find location
     X_face_locations = face_recognition.face_locations(img)
     
@@ -66,31 +66,57 @@ def predict(img,knn_clf, distance_threshold=0.48):
     
 
 
-    print(time.time()-t1)
+
     # Predict classes and remove classifications that aren't within the threshold
     return [(pred, loc) if rec else ("unknown", loc) for pred, loc, rec in zip(knn_clf.predict(faces_encodings), X_face_locations, are_matches)]
 
 
+
+
+
+
+
+
+
+
+
+
 def show_prediction_labels_on_image(cvframe, predictions):
     
-    
+    count=len(predictions)
+  
+   
     pilframe = Image.fromarray(cvframe)   
     draw = ImageDraw.Draw(pilframe)
 
+
+
+    
     for name, (top, right, bottom, left) in predictions:
-        top *= 4
-        right *= 4
-        bottom *= 4
-        left *= 4
-        draw.rectangle(((left, top), (right, bottom)), outline=(0, 0, 255))      
-        text_width, text_height = draw.textsize(name)
-        
-        draw.text((left + 6, bottom - 40),name, font=font, fill=(255,255,255))
+        if name != 'unknown':
+
+            top *= 4
+            right *= 4
+            bottom *= 4
+            left *= 4
+            
+            cut_size=int(1024/(count*2))
+            
+
+            impred = cvframe[top:bottom+20, left:left+(bottom-top)+20]       
+            impred = cv2.resize(impred,(cut_size,cut_size))
+
+            imbase = cv2.imread('train/'+name+'/'+name+'.jpg')
+            imbase = cv2.resize(imbase,(cut_size,cut_size))
+            vis = np.concatenate((impred,imbase), axis=1) 
+            #draw.text((left + 6, bottom - 40),name, font=font, fill=(255,255,255))
+        else:
+            return []
        
 
-    cvframe = np.asarray(pilframe) 
+    #cvframe = np.asarray(pilframe) 
    
-    cv2.imshow('window', )
+    cv2.imshow('window', vis)
     
 
     
@@ -136,7 +162,7 @@ if __name__ == "__main__":
             
             predictions = predict(rgb_small_cvframe, knn_clf)
         
-            show_prediction_labels_on_image(cvframe, predictions)
+            show_prediction_labels_on_image(cvframe, predictions) if predictions != [] else cv2.imshow('window', cvframe)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
