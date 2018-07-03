@@ -73,14 +73,6 @@ def predict(img,knn_clf, distance_threshold=0.48):
 
 
 
-
-
-
-
-
-
-
-
 def show_prediction_labels_on_image(cvframe, predictions):
     
     count=len(predictions)
@@ -120,7 +112,7 @@ def show_prediction_labels_on_image(cvframe, predictions):
 
     #cvframe = np.asarray(pilframe) 
    
-    cv2.imshow('window', vis)
+    cv2.imshow('window', temp)
     
 
     
