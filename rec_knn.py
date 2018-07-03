@@ -66,7 +66,7 @@ def predict(img,knn_clf, distance_threshold=0.48):
     
 
 
-    print(t1-time.time())
+    print(time.time()-t1)
     # Predict classes and remove classifications that aren't within the threshold
     return [(pred, loc) if rec else ("unknown", loc) for pred, loc, rec in zip(knn_clf.predict(faces_encodings), X_face_locations, are_matches)]
 
