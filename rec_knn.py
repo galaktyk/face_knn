@@ -9,11 +9,21 @@ from face_recognition.face_recognition_cli import image_files_in_folder
 import time
 import cv2
 import numpy as np
+import csv
 
 font=ImageFont.truetype("THSarabunNew.ttf",30)
 font_s=ImageFont.truetype("THSarabunNew.ttf",20)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
+database_name=[]
+database_bday=[]
+database_food=[]
+with open('model/database.csv', 'r') as f:
+    d = csv.reader(f)
+    for row in d:
+        database_name.append(row[0])
+        database_bday.append(row[1])
+        database_food.append(row[2])
 
 def train():
     train_dir="train/"
@@ -86,6 +96,13 @@ def show_prediction_labels_on_image(cvframe, predictions):
         text_width, text_height = draw.textsize(name)
         draw.rectangle(((left, bottom - text_height - 10), (right, bottom)), fill=(0, 0, 255), outline=(0, 0, 255))
         draw.text((left + 6, bottom - 40),name, font=font, fill=(255,255,255))
+
+
+        if name != 'unknown':
+            index=database_name.index(name)            
+            draw.text((left + 50, top+5),database_bday[index], font=font_s, fill=(255,255,255))
+            draw.text((left + 70, bottom-30),database_food[index], font=font_s, fill=(255,255,255))
+
        
 
     cvframe = np.asarray(pilframe) 

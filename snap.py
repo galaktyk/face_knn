@@ -84,11 +84,12 @@ def predict(img,knn_clf, distance_threshold=0.48):
 def show_prediction_labels_on_image(cvframe, predictions):
     
     count=len(predictions)
-  
+    cut_size=int(1024/(count*2))
    
     pilframe = Image.fromarray(cvframe)   
     draw = ImageDraw.Draw(pilframe)
 
+    vis=np.array(np.zeros((cut_size,1,3)))
 
 
     
@@ -100,7 +101,7 @@ def show_prediction_labels_on_image(cvframe, predictions):
             bottom *= 4
             left *= 4
             
-            cut_size=int(1024/(count*2))
+            
             
 
             impred = cvframe[top:bottom+20, left:left+(bottom-top)+20]       
@@ -108,11 +109,14 @@ def show_prediction_labels_on_image(cvframe, predictions):
 
             imbase = cv2.imread('train/'+name+'/'+name+'.jpg')
             imbase = cv2.resize(imbase,(cut_size,cut_size))
-            vis = np.concatenate((impred,imbase), axis=1) 
+            temp = np.concatenate((impred,imbase), axis=1) 
+        
+            vis=np.concatenate((vis,temp),axis=1)
+
             #draw.text((left + 6, bottom - 40),name, font=font, fill=(255,255,255))
         else:
             return []
-       
+         
 
     #cvframe = np.asarray(pilframe) 
    
