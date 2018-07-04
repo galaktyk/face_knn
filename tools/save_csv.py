@@ -11,13 +11,13 @@ class save_csv():
         self.filename=str(time.strftime("%Y-%m-%d", time.localtime())+'.csv')
      
         
-        if not os.path.isfile('csv/'+self.filename) :  ## if file does not exist then make it!   
+        if not os.path.isfile('report/'+self.filename) :  ## if file does not exist then make it!   
             
-            with open('csv/'+self.filename,  mode='a') as f: 
+            with open('report/'+self.filename,  mode='a') as f: 
                         
                         writer=csv.writer(f)
                         writer.writerow(['Datetime','name'])                        
-                        print('Make file csv/'+self.filename)
+                        print('Make file report/'+self.filename)
                        
                         
  
@@ -28,7 +28,7 @@ class save_csv():
 
         
       
-        with open('csv/'+self.filename,  mode='a') as f: #append mode
+        with open('report/'+self.filename,  mode='a') as f: #append mode
             
             writer=csv.writer(f)
             writer.writerow(record)

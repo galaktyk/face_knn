@@ -23,7 +23,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 
 def train():
-    train_dir="train/"
+    train_dir="train_images/"
     verbose=True
     X = []
     y = []
@@ -140,11 +140,13 @@ class test():
         
         if len(self.oldname) > 0:
             if time.time() - self.oldname[0][1] >= 10:
-                self.oldname.pop(0) if len(self.oldname) != 0 else None
-                
-
-
+                self.oldname.pop(0) if len(self.oldname) != 0 else None        
         print(self.oldname)
+
+
+
+
+
         pilframe = Image.fromarray(cvframe)   
         draw = ImageDraw.Draw(pilframe)
 
@@ -191,6 +193,13 @@ class test():
 
     def show_snap(self,cvframe, predictions):
 
+        if len(self.oldname) > 0:
+            if time.time() - self.oldname[0][1] >= 10:
+                self.oldname.pop(0) if len(self.oldname) != 0 else None        
+        print(self.oldname)
+
+
+
         count=len(predictions)
 
         if count != 0:
@@ -217,7 +226,7 @@ class test():
                     impred = cv2.resize(impred,(cut_size,cut_size))
 
                     
-                    imbase = Image.open('train/'+name+'/'+name+'.jpg')                   
+                    imbase = Image.open('train_images/'+name+'/'+name+'.jpg')                   
                     imbase = imbase.resize((cut_size,cut_size))
 
                     # ________________________________________________________DRAW SNAP info
@@ -232,8 +241,16 @@ class test():
                     imbase = cv2.cvtColor(imbase, cv2.COLOR_BGR2RGB)
                     fullim = np.concatenate((impred,imbase), axis=1) 
                 
-                   
-                    
+                    if name not in [item[0] for item in self.oldname]:
+                        record=[time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()), name]
+                        csv_obj.save_this(record)
+                        self.oldname.append((name,time.time()))
+                    else:
+                        inx=[item[0] for item in self.oldname].index(name)
+                        self.oldname.pop(inx)
+                        self.oldname.append((name,time.time()))          
+
+                                       
                 else:
                     return []               
           
