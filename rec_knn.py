@@ -65,19 +65,19 @@ def train():
 
 class test():
 
-    def __init__():
+    def __init__(self):
         self.oldname=[]
         self.t_start=time.time()
 
         X= np.load('model/X.npy')
         y= np.load('model/y.npy')
 
-        knn_clf = neighbors.KNeighborsClassifier(n_neighbors=5, algorithm='ball_tree', weights='distance')
-        knn_clf.fit(X, y)
+        self.knn_clf = neighbors.KNeighborsClassifier(n_neighbors=5, algorithm='ball_tree', weights='distance')
+        self.knn_clf.fit(X, y)
 
 
 
-    def predict(self,img,knn_clf, distance_threshold=0.48):
+    def predict(self,img,distance_threshold=0.48):
         
         t1=time.time() 
         # find location
@@ -91,7 +91,7 @@ class test():
         faces_encodings = face_recognition.face_encodings(img, known_face_locations=X_face_locations)
 
         # Use the KNN model to find the best matches for the test face
-        closest_distances = knn_clf.kneighbors(faces_encodings, n_neighbors=5)
+        closest_distances = self.knn_clf.kneighbors(faces_encodings, n_neighbors=5)
         are_matches = [closest_distances[0][i][0] <= distance_threshold for i in range(len(X_face_locations))]
         
 
@@ -106,14 +106,16 @@ class test():
 
 
         # Predict classes and remove classifications that aren't within the threshold
-        return [(pred, loc) if rec else ("unknown", loc) for pred, loc, rec in zip(knn_clf.predict(faces_encodings), X_face_locations, are_matches)]
+        return [(pred, loc) if rec else ("unknown", loc) for pred, loc, rec in zip(self.knn_clf.predict(faces_encodings), X_face_locations, are_matches)]
 
 
     def show_prediction_labels_on_image(self,cvframe, predictions):
 
-        if time.time()-self.t_start >= 10:
-            self.oldname.pop(0) if len(self.oldname) != 0 else None
-            self.t_start = time.time()
+        
+        if len(self.oldname) > 0:
+            if time.time() - self.oldname[0][1] >= 10:
+                self.oldname.pop(0) if len(self.oldname) != 0 else None
+                
 
 
         print(self.oldname)
@@ -137,11 +139,14 @@ class test():
                 draw.text((left + 70, bottom-30),database_food[index], font=font_s, fill=(255,255,255))
 
 
-                if name not in self.oldname:
+                if name not in [item[0] for item in self.oldname]:
                     record=[time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()), name]
                     csv_obj.save_this(record)
-                    self.oldname.append(name)
-
+                    self.oldname.append((name,time.time()))
+                else:
+                    inx=[item[0] for item in self.oldname].index(name)
+                    self.oldname.pop(inx)
+                    self.oldname.append((name,time.time()))
 
 
 
@@ -202,9 +207,9 @@ if __name__ == "__main__":
             small_cvframe = cv2.resize(cvframe, (0, 0), fx=0.25, fy=0.25)
             rgb_small_cvframe = small_cvframe[:, :, ::-1]
             
-            predictions = predict(rgb_small_cvframe, knn_clf)
+            predictions = test_obj.predict(rgb_small_cvframe)
         
-            show_prediction_labels_on_image(cvframe, predictions)
+            test_obj.show_prediction_labels_on_image(cvframe, predictions)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
