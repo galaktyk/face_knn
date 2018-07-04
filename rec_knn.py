@@ -12,19 +12,14 @@ import numpy as np
 import csv
 from tools.save_csv import save_csv
 
+
+
+
 font=ImageFont.truetype("THSarabunNew.ttf",30)
 font_s=ImageFont.truetype("THSarabunNew.ttf",20)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-database_name=[]
-database_bday=[]
-database_food=[]
-with open('model/database.csv', 'r') as f:
-    d = csv.reader(f)
-    for row in d:
-        database_name.append(row[0])
-        database_bday.append(row[1])
-        database_food.append(row[2])
+
 
 
 
@@ -59,9 +54,9 @@ def train():
     np.save('model/X.npy', X) 
     np.save('model/y.npy', y)
        
- 
 
 
+#___________________________________________________________________________________________________________________________ CLASS
 
 class test():
 
@@ -75,16 +70,21 @@ class test():
         self.knn_clf = neighbors.KNeighborsClassifier(n_neighbors=5, algorithm='ball_tree', weights='distance')
         self.knn_clf.fit(X, y)
 
+        self.database_name=[]
+        self.database_bday=[]
+        self.database_food=[]
+        with open('model/database.csv', 'r') as f:
+            d = csv.reader(f)
+            for row in d:
+                self.database_name.append(row[0])
+                self.database_bday.append(row[1])
+                self.database_food.append(row[2]) 
 
 
-    def predict(self,img,distance_threshold=0.48):
-        
-        t1=time.time() 
-        # find location
-        X_face_locations = face_recognition.face_locations(img)
-        
-
-        #if no face
+    def predict(self,img,distance_threshold=0.48): 
+        t1=time.time()       
+        X_face_locations = face_recognition.face_locations(img) 
+    
         if len(X_face_locations) == 0:
             return []
        
@@ -96,10 +96,6 @@ class test():
         
 
 
-        #print(time.time()-t1)
-
-
-      
 
 
 
@@ -109,7 +105,40 @@ class test():
         return [(pred, loc) if rec else ("unknown", loc) for pred, loc, rec in zip(self.knn_clf.predict(faces_encodings), X_face_locations, are_matches)]
 
 
-    def show_prediction_labels_on_image(self,cvframe, predictions):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#_____________________________________________________________BOX FUNCTION___________________________________________
+
+    def show_box(self,cvframe, predictions):
 
         
         if len(self.oldname) > 0:
@@ -134,9 +163,9 @@ class test():
 
 
             if name != 'unknown':
-                index=database_name.index(name)            
-                draw.text((left + 50, top+5),database_bday[index], font=font_s, fill=(255,255,255))
-                draw.text((left + 70, bottom-30),database_food[index], font=font_s, fill=(255,255,255))
+                index=self.database_name.index(name)            
+                draw.text((left + 50, top+5),self.database_bday[index], font=font_s, fill=(255,255,255))
+                draw.text((left + 70, bottom-30),self.database_food[index], font=font_s, fill=(255,255,255))
 
 
                 if name not in [item[0] for item in self.oldname]:
@@ -146,21 +175,94 @@ class test():
                 else:
                     inx=[item[0] for item in self.oldname].index(name)
                     self.oldname.pop(inx)
-                    self.oldname.append((name,time.time()))
+                    self.oldname.append((name,time.time()))           
+
+        cvframe = np.asarray(pilframe)        
+        cv2.imshow('', cvframe)        
+        
 
 
+
+
+
+
+
+#_____________________________________________________________SNAP FUNCTION___________________________________________
+
+
+
+
+    def show_snap(self,cvframe, predictions):
+
+        count=len(predictions)
+
+        if count != 0:
+         
+            cut_size=int(1024/(count*2))
+
+            pilframe = Image.fromarray(cvframe)   
+            
+
+            #vis=np.array(np.zeros((cut_size,1,3)))
+
+            
+            for name, (top, right, bottom, left) in predictions:
+                if name != 'unknown':
+
+                    top *= 4
+                    right *= 4
+                    bottom *= 4
+                    left *= 4
+                                       
+                    
+
+                    impred = cvframe[top:bottom+20, left:left+(bottom-top)+20]       
+                    impred = cv2.resize(impred,(cut_size,cut_size))
+
+                    
+                    imbase = Image.open('train/'+name+'/'+name+'.jpg')                   
+                    imbase = imbase.resize((cut_size,cut_size))
+
+                    # ________________________________________________________DRAW SNAP info
+                    draw = ImageDraw.Draw(imbase)
+                    index=self.database_name.index(name)  
+                    draw.text((20, 350),name, font=font_s, fill=(255,255,255))
+                    draw.text((20, 400),self.database_bday[index], font=font_s, fill=(255,255,255))
+                    draw.text((20, 450),self.database_food[index], font=font_s, fill=(255,255,255))
+
+                    imbase = np.asarray(imbase) 
+                    imbase = cv2.cvtColor(imbase, cv2.COLOR_BGR2RGB)
+                    fullim = np.concatenate((impred,imbase), axis=1) 
+                
+                   
+                    
+                else:
+                    return []               
+          
+            
+            cv2.imshow('', fullim)             
 
            
 
-        cvframe = np.asarray(pilframe) 
-       
-        cv2.imshow('window', cvframe)
-        
-        
 
-        
 
-       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -192,7 +294,7 @@ if __name__ == "__main__":
         train()     
         print('complete! : ',time.time()-t1)
 
-    if args.mode == "test":      
+    else:      
 
 
         test_obj=test()
@@ -209,7 +311,10 @@ if __name__ == "__main__":
             
             predictions = test_obj.predict(rgb_small_cvframe)
         
-            test_obj.show_prediction_labels_on_image(cvframe, predictions)
+            test_obj.show_box(cvframe, predictions) if args.mode =='test' else None
+            test_obj.show_snap(cvframe, predictions) if args.mode == 'snap' else None
+
+
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 

@@ -45,7 +45,9 @@ def train():
     np.save('model/y.npy', y)
        
  
- 
+
+
+          
 
 def predict(img,knn_clf, distance_threshold=0.48):
     
