@@ -175,7 +175,7 @@ class test():
                     self.oldname.append((name,time.time()))           
 
         cvframe = np.asarray(pilframe)        
-        cv2.imshow('', cvframe)        
+        cv2.imshow('window', cvframe)        
         
 
 
@@ -233,8 +233,10 @@ class test():
                 draw = ImageDraw.Draw(imbase)
                 index=self.database_name.index(name) 
                 #draw.rectangle(((0, 400), (512, 512)), fill="black") 
-                draw.text((2, 400),name, font=font, fill=(255,255,255))
-                draw.text((180, 400),self.database_bday[index], font=font, fill=(255,255,255))
+
+                textdname=(name+"   "+self.database_bday[index])
+                draw.text((2, 400),textdname, font=font, fill=(255,255,255))
+                
                 draw.text((2, 460),self.database_food[index], font=font, fill=(255,255,255))
 
                 imbase = np.asarray(imbase) 
@@ -256,9 +258,8 @@ class test():
                        
           
             
-            cv2.namedWindow("snap", cv2.WND_PROP_FULLSCREEN)
-            cv2.setWindowProperty("snap",cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
-            cv2.imshow("snap", fullim)             
+           
+            cv2.imshow("window", fullim)             
 
            
 
@@ -301,7 +302,8 @@ if __name__ == "__main__":
     csv_obj=save_csv() 
 
 
-    
+    cv2.namedWindow("window", cv2.WND_PROP_FULLSCREEN)
+    cv2.setWindowProperty("window",cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
 
 
 
@@ -332,7 +334,7 @@ if __name__ == "__main__":
             test_obj.show_box(cvframe, predictions) if args.mode =='test' else None
             test_obj.show_snap(cvframe, predictions) if args.mode == 'snap' else None
 
-
+            cv2.imshow("window",cvframe) if len(predictions) == 0 else None
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
