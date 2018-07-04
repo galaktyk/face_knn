@@ -10,6 +10,7 @@ import time
 import cv2
 import numpy as np
 import csv
+from tools.save_csv import save_csv
 
 font=ImageFont.truetype("THSarabunNew.ttf",30)
 font_s=ImageFont.truetype("THSarabunNew.ttf",20)
@@ -24,6 +25,10 @@ with open('model/database.csv', 'r') as f:
         database_name.append(row[0])
         database_bday.append(row[1])
         database_food.append(row[2])
+
+
+
+
 
 def train():
     train_dir="train/"
@@ -55,64 +60,111 @@ def train():
     np.save('model/y.npy', y)
        
  
- 
-
-def predict(img,knn_clf, distance_threshold=0.48):
-    
-    t1=time.time() 
-    # find location
-    X_face_locations = face_recognition.face_locations(img)
-    
-
-    #if no face
-    if len(X_face_locations) == 0:
-        return []
-   
-    faces_encodings = face_recognition.face_encodings(img, known_face_locations=X_face_locations)
-
-    # Use the KNN model to find the best matches for the test face
-    closest_distances = knn_clf.kneighbors(faces_encodings, n_neighbors=5)
-    are_matches = [closest_distances[0][i][0] <= distance_threshold for i in range(len(X_face_locations))]
-    
 
 
-    print(time.time()-t1)
-    # Predict classes and remove classifications that aren't within the threshold
-    return [(pred, loc) if rec else ("unknown", loc) for pred, loc, rec in zip(knn_clf.predict(faces_encodings), X_face_locations, are_matches)]
+
+class test():
+
+    def __init__():
+        self.oldname=[]
+        self.t_start=time.time()
+
+        X= np.load('model/X.npy')
+        y= np.load('model/y.npy')
+
+        knn_clf = neighbors.KNeighborsClassifier(n_neighbors=5, algorithm='ball_tree', weights='distance')
+        knn_clf.fit(X, y)
 
 
-def show_prediction_labels_on_image(cvframe, predictions):
-    
-    
-    pilframe = Image.fromarray(cvframe)   
-    draw = ImageDraw.Draw(pilframe)
 
-    for name, (top, right, bottom, left) in predictions:
-        top *= 4
-        right *= 4
-        bottom *= 4
-        left *= 4
-        draw.rectangle(((left, top), (right, bottom)), outline=(0, 0, 255))      
-        text_width, text_height = draw.textsize(name)
-        draw.rectangle(((left, bottom - text_height - 10), (right, bottom)), fill=(0, 0, 255), outline=(0, 0, 255))
-        draw.text((left + 6, bottom - 40),name, font=font, fill=(255,255,255))
+    def predict(self,img,knn_clf, distance_threshold=0.48):
+        
+        t1=time.time() 
+        # find location
+        X_face_locations = face_recognition.face_locations(img)
+        
+
+        #if no face
+        if len(X_face_locations) == 0:
+            return []
+       
+        faces_encodings = face_recognition.face_encodings(img, known_face_locations=X_face_locations)
+
+        # Use the KNN model to find the best matches for the test face
+        closest_distances = knn_clf.kneighbors(faces_encodings, n_neighbors=5)
+        are_matches = [closest_distances[0][i][0] <= distance_threshold for i in range(len(X_face_locations))]
+        
 
 
-        if name != 'unknown':
-            index=database_name.index(name)            
-            draw.text((left + 50, top+5),database_bday[index], font=font_s, fill=(255,255,255))
-            draw.text((left + 70, bottom-30),database_food[index], font=font_s, fill=(255,255,255))
+        #print(time.time()-t1)
+
+
+      
+
+
+
+
+
+        # Predict classes and remove classifications that aren't within the threshold
+        return [(pred, loc) if rec else ("unknown", loc) for pred, loc, rec in zip(knn_clf.predict(faces_encodings), X_face_locations, are_matches)]
+
+
+    def show_prediction_labels_on_image(self,cvframe, predictions):
+
+        if time.time()-self.t_start >= 10:
+            self.oldname.pop(0) if len(self.oldname) != 0 else None
+            self.t_start = time.time()
+
+
+        print(self.oldname)
+        pilframe = Image.fromarray(cvframe)   
+        draw = ImageDraw.Draw(pilframe)
+
+        for name, (top, right, bottom, left) in predictions:
+            top *= 4
+            right *= 4
+            bottom *= 4
+            left *= 4
+            draw.rectangle(((left, top), (right, bottom)), outline=(0, 0, 255))      
+            text_width, text_height = draw.textsize(name)
+            draw.rectangle(((left, bottom - text_height - 10), (right, bottom)), fill=(0, 0, 255), outline=(0, 0, 255))
+            draw.text((left + 6, bottom - 40),name, font=font, fill=(255,255,255))
+
+
+            if name != 'unknown':
+                index=database_name.index(name)            
+                draw.text((left + 50, top+5),database_bday[index], font=font_s, fill=(255,255,255))
+                draw.text((left + 70, bottom-30),database_food[index], font=font_s, fill=(255,255,255))
+
+
+                if name not in self.oldname:
+                    record=[time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()), name]
+                    csv_obj.save_this(record)
+                    self.oldname.append(name)
+
+
+
+
+           
+
+        cvframe = np.asarray(pilframe) 
+       
+        cv2.imshow('window', cvframe)
+        
+        
+
+        
 
        
 
-    cvframe = np.asarray(pilframe) 
-   
-    cv2.imshow('window', cvframe)
-    
 
-    
 
-   
+
+
+
+
+
+
 
 if __name__ == "__main__":
 
@@ -121,7 +173,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print("running : ",args.mode)
 
+    csv_obj=save_csv() 
 
+
+    
 
 
 
@@ -134,12 +189,8 @@ if __name__ == "__main__":
 
     if args.mode == "test":      
 
-        X= np.load('model/X.npy')
-        y= np.load('model/y.npy')
 
-        knn_clf = neighbors.KNeighborsClassifier(n_neighbors=5, algorithm='ball_tree', weights='distance')
-        knn_clf.fit(X, y)
- 
+        test_obj=test()
 
         
         video_capture = cv2.VideoCapture(0)    
