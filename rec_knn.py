@@ -13,10 +13,8 @@ import csv
 from tools.save_csv import save_csv
 
 
-
-
-font=ImageFont.truetype("THSarabunNew.ttf",30)
-font_s=ImageFont.truetype("THSarabunNew.ttf",20)
+font=ImageFont.truetype("Tahoma Bold.ttf",40)
+font_s=ImageFont.truetype("Tahoma Bold.ttf",20)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 
@@ -183,9 +181,6 @@ class test():
 
 
 
-
-
-
 #_____________________________________________________________SNAP FUNCTION___________________________________________
 
 
@@ -204,58 +199,66 @@ class test():
 
         if count != 0:
          
-            cut_size=int(1024/(count*2))
-
-            pilframe = Image.fromarray(cvframe)   
             
 
-            #vis=np.array(np.zeros((cut_size,1,3)))
+            pilframe = Image.fromarray(cvframe)   #cv to pil
+            
+
+            #vis=np.array(np.zeros((512,1,3)))
 
             
             for name, (top, right, bottom, left) in predictions:
-                if name != 'unknown':
-
-                    top *= 4
-                    right *= 4
-                    bottom *= 4
-                    left *= 4
-                                       
-                    
-
-                    impred = cvframe[top:bottom+20, left:left+(bottom-top)+20]       
-                    impred = cv2.resize(impred,(cut_size,cut_size))
-
-                    
-                    imbase = Image.open('train_images/'+name+'/'+name+'.jpg')                   
-                    imbase = imbase.resize((cut_size,cut_size))
-
-                    # ________________________________________________________DRAW SNAP info
-                    draw = ImageDraw.Draw(imbase)
-                    index=self.database_name.index(name) 
-                    draw.rectangle(((0, 450), (cut_size, cut_size)), fill="black") 
-                    draw.text((20, 455),name, font=font, fill=(255,255,255))
-                    draw.text((250, 455),self.database_bday[index], font=font, fill=(255,255,255))
-                    draw.text((20, 475),self.database_food[index], font=font, fill=(255,255,255))
-
-                    imbase = np.asarray(imbase) 
-                    imbase = cv2.cvtColor(imbase, cv2.COLOR_BGR2RGB)
-                    fullim = np.concatenate((impred,imbase), axis=1) 
                 
-                    if name not in [item[0] for item in self.oldname]:
-                        record=[time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()), name]
-                        csv_obj.save_this(record)
-                        self.oldname.append((name,time.time()))
-                    else:
-                        inx=[item[0] for item in self.oldname].index(name)
-                        self.oldname.pop(inx)
-                        self.oldname.append((name,time.time()))          
+
+                top *= 4
+                right *= 4
+                bottom *= 4
+                left *= 4
+                                   
+                
+
+                impred = cvframe[top:bottom+20, left:left+(bottom-top)+20]       
+                impred = cv2.resize(impred,(512,512))
+                
+                ######################### ____________ ##########################
+                
+                imbase = cv2.imread('train_images/'+name+'/'+name+'.jpg')                   
+                imbase = cv2.resize(imbase,(400,400))
+                
+                imbase = np.concatenate((imbase,np.zeros((112,400,3))), axis=0) 
+                imbase = Image.fromarray(imbase.astype('uint8'))  
+                #print(type(imbase) )
+                #imbase= Image.fromarray(imbase.astype('uint8'))
+                # ________________________________________________________DRAW SNAP info
+                draw = ImageDraw.Draw(imbase)
+                index=self.database_name.index(name) 
+                #draw.rectangle(((0, 400), (512, 512)), fill="black") 
+                draw.text((2, 400),name, font=font, fill=(255,255,255))
+                draw.text((180, 400),self.database_bday[index], font=font, fill=(255,255,255))
+                draw.text((2, 460),self.database_food[index], font=font, fill=(255,255,255))
+
+                imbase = np.asarray(imbase) 
+                
+                print(impred.shape)
+                print(imbase.shape)
+                fullim = np.concatenate((impred,imbase), axis=1) 
+            
+                if name not in [item[0] for item in self.oldname]:
+                    record=[time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()), name]
+                    csv_obj.save_this(record)
+                    self.oldname.append((name,time.time()))
+                else:
+                    inx=[item[0] for item in self.oldname].index(name)
+                    self.oldname.pop(inx)
+                    self.oldname.append((name,time.time()))          
 
                                        
-                else:
-                    return []               
+                       
           
             
-            cv2.imshow('', fullim)             
+            cv2.namedWindow("snap", cv2.WND_PROP_FULLSCREEN)
+            cv2.setWindowProperty("snap",cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
+            cv2.imshow("snap", fullim)             
 
            
 
