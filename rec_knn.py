@@ -225,10 +225,11 @@ class test():
 
                     # ________________________________________________________DRAW SNAP info
                     draw = ImageDraw.Draw(imbase)
-                    index=self.database_name.index(name)  
-                    draw.text((20, 350),name, font=font_s, fill=(255,255,255))
-                    draw.text((20, 400),self.database_bday[index], font=font_s, fill=(255,255,255))
-                    draw.text((20, 450),self.database_food[index], font=font_s, fill=(255,255,255))
+                    index=self.database_name.index(name) 
+                    draw.rectangle(((0, 450), (cut_size, cut_size)), fill="black") 
+                    draw.text((20, 455),name, font=font, fill=(255,255,255))
+                    draw.text((250, 455),self.database_bday[index], font=font, fill=(255,255,255))
+                    draw.text((20, 475),self.database_food[index], font=font, fill=(255,255,255))
 
                     imbase = np.asarray(imbase) 
                     imbase = cv2.cvtColor(imbase, cv2.COLOR_BGR2RGB)
