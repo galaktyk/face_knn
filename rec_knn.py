@@ -22,9 +22,6 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 
 
-
-
-
 def train():
     train_dir="train/"
     verbose=True
