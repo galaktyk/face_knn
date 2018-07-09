@@ -53,12 +53,12 @@ def train():
 
 #___________________________________________________________________________________________________________________________ CLASS
 
-class test():
+class testorsnap():
 
-    def __init__(self):
+    def __init__(self,args):
         self.oldname=[]
         self.t_start=time.time()
-
+        self.args=args
         X= np.load('model/X.npy')
         y= np.load('model/y.npy')
 
@@ -98,20 +98,6 @@ class test():
 
         # Predict classes and remove classifications that aren't within the threshold
         return [(pred, loc) if rec else ("unknown", loc) for pred, loc, rec in zip(self.knn_clf.predict(faces_encodings), X_face_locations, are_matches)]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -189,11 +175,9 @@ class test():
     def show_snap(self,cvframe, predictions):
 
         if len(self.oldname) > 0:
-            if time.time() - self.oldname[0][1] >= 10:
+            if time.time() - self.oldname[0][1] >= self.args.disappear:
                 self.oldname.pop(0) if len(self.oldname) != 0 else None        
-        #print(self.oldname)
-
-
+        
 
         count=len(predictions)
 
@@ -214,18 +198,14 @@ class test():
             right *= 4
             bottom = (bottom*4)+50; bottom = 1 if (bottom <= 1) else bottom
             left =(left*4)-50;left =1 if (left <= 1) else left
-            print(top,bottom,left)
+            
                                
             
 
             impred = cvframe[top:bottom, left:left+(bottom-top)]      
             
-            if 1 in impred.shape :
-                good_im=False
+            if 1 not in impred.shape :
                 
-            else:
-                good_im = True
-                print(good_im)
                 impred = cv2.resize(impred,(512,512))
             
                 ######################### ____________ ##########################
@@ -235,12 +215,11 @@ class test():
                 
                 imbase = np.concatenate((imbase,np.zeros((112,400,3))), axis=0) 
                 imbase = Image.fromarray(imbase.astype('uint8'))  
-                #print(type(imbase) )
-                #imbase= Image.fromarray(imbase.astype('uint8'))
+                
                 # ________________________________________________________DRAW SNAP info
                 draw = ImageDraw.Draw(imbase)
                 index=self.database_name.index(name) 
-                #draw.rectangle(((0, 400), (512, 512)), fill="black") 
+                
 
                 textdname=(name+"   "+self.database_bday[index])
                 draw.text((2, 400),textdname, font=font, fill=(255,255,255))
@@ -249,8 +228,7 @@ class test():
 
                 imbase = np.asarray(imbase) 
                 
-                print(impred.shape)
-                print(imbase.shape)
+               
                 fullim = np.concatenate((impred,imbase), axis=1) 
             
                 if name not in [item[0] for item in self.oldname]:
@@ -272,34 +250,14 @@ class test():
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='face_recognition using dlib and KNN')
-    parser.add_argument('--mode',default='test',help='train or test (use test by default)')    
+    parser.add_argument('--mode',default='snap',help='train or test (use test by default)')  
+    parser.add_argument('--disappear',default=420,help='memory time(in sec)')  
     args = parser.parse_args()
     print("running : ",args.mode)
+    print("memory : " ,args.disappear,'sec')
 
     csv_obj=save_csv() 
 
@@ -319,7 +277,7 @@ if __name__ == "__main__":
     else:      
 
 
-        test_obj=test()
+        test_obj=testorsnap(args)
 
         
         video_capture = cv2.VideoCapture(0)    
@@ -340,7 +298,7 @@ if __name__ == "__main__":
             cv2.imshow("window",cvframe) if len(predictions) == 0 else None
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-            print(time.time()-t1)
+            #print(time.time()-t1)
 
 
 
