@@ -62,7 +62,7 @@ class test():
         X= np.load('model/X.npy')
         y= np.load('model/y.npy')
 
-        self.knn_clf = neighbors.KNeighborsClassifier(n_neighbors=5, algorithm='ball_tree', weights='distance')
+        self.knn_clf = neighbors.KNeighborsClassifier(n_neighbors=5, algorithm='ball_tree', weights='distance',n_jobs = 4)
         self.knn_clf.fit(X, y)
 
         self.database_name=[]
@@ -139,7 +139,7 @@ class test():
         if len(self.oldname) > 0:
             if time.time() - self.oldname[0][1] >= 10:
                 self.oldname.pop(0) if len(self.oldname) != 0 else None        
-        print(self.oldname)
+        #print(self.oldname)
 
 
 
@@ -191,7 +191,7 @@ class test():
         if len(self.oldname) > 0:
             if time.time() - self.oldname[0][1] >= 10:
                 self.oldname.pop(0) if len(self.oldname) != 0 else None        
-        print(self.oldname)
+        #print(self.oldname)
 
 
 
@@ -207,19 +207,27 @@ class test():
             #vis=np.array(np.zeros((512,1,3)))
 
             
-            for name, (top, right, bottom, left) in predictions:
+            name, (top, right, bottom, left) = predictions[0]
                 
 
-                top *= 4
-                right *= 4
-                bottom *= 4
-                left *= 4
-                                   
-                
+            top =(top*4)-50;top = 1 if (top <= 1) else top
+            right *= 4
+            bottom = (bottom*4)+50; bottom = 1 if (bottom <= 1) else bottom
+            left =(left*4)-50;left =1 if (left <= 1) else left
+            print(top,bottom,left)
+                               
+            
 
-                impred = cvframe[top:bottom+20, left:left+(bottom-top)+20]       
+            impred = cvframe[top:bottom, left:left+(bottom-top)]      
+            
+            if 1 in impred.shape :
+                good_im=False
+                
+            else:
+                good_im = True
+                print(good_im)
                 impred = cv2.resize(impred,(512,512))
-                
+            
                 ######################### ____________ ##########################
                 
                 imbase = cv2.imread('train_images/'+name+'/'+name+'.jpg')                   
@@ -252,14 +260,8 @@ class test():
                 else:
                     inx=[item[0] for item in self.oldname].index(name)
                     self.oldname.pop(inx)
-                    self.oldname.append((name,time.time()))          
-
-                                       
-                       
-          
-            
-           
-            cv2.imshow("window", fullim)             
+                    self.oldname.append((name,time.time()))      
+                cv2.imshow("window", fullim)
 
            
 
@@ -322,6 +324,7 @@ if __name__ == "__main__":
         
         video_capture = cv2.VideoCapture(0)    
         while True:
+            t1=time.time()
             
             ret, cvframe = video_capture.read()
           
@@ -337,6 +340,7 @@ if __name__ == "__main__":
             cv2.imshow("window",cvframe) if len(predictions) == 0 else None
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
+            print(time.time()-t1)
 
 
 
