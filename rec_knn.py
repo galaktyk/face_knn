@@ -242,8 +242,25 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='face_recognition using dlib and KNN')
     parser.add_argument('--mode',default='snap',help='train or test (use test by default)')  
-    parser.add_argument('--disappear',default=420,help='memory time(in sec)')  
+    parser.add_argument('--disappear',default=420,help='memory time(in sec)') 
+    parser.add_argument('--device',default="webcam",help='use camera') 
+
+
+
+    
     args = parser.parse_args()
+    if args.device=="picamera":
+        from picamera.array import PIRGBArray
+        from picamera import PiCamera
+
+            
+        
+        with picamera.PiCamera() as camera:
+            camera.resolution = (1024, 768)
+            rawCapture=PiRGBArray(camera)
+
+
+
     print("running : ",args.mode)
     print("memory : " ,args.disappear,'sec')
 
@@ -268,37 +285,64 @@ if __name__ == "__main__":
         test_obj=testorsnap(args)
 
         
-        video_capture = cv2.VideoCapture(0)    
-        while True:
+        video_capture = cv2.VideoCapture(0)
+
+        if args.device == "webcam":
+            while True:
+                
+                
+                _, cvframe = video_capture.read() if args.device == "webcam" else None
+                #cvframe = cv2.cvtColor(cvframe, cv2.COLOR_BGR2GRAY)
+              
+                
+                small_cvframe = cv2.resize(cvframe, (0, 0), fx=0.25, fy=0.25)
+                rgb_small_cvframe = small_cvframe[:, :, ::-1]
+                tpre=time.time()
+                predictions = test_obj.predict(rgb_small_cvframe)
+                print("pred time",time.time()-tpre)
+
+
+                if len(predictions) != 0:
+                    test_obj.show_box(cvframe, predictions) if args.mode =='test' else None
+                    test_obj.show_snap(cvframe, predictions) if args.mode == 'snap' else None
+
+                else:
+                    cv2.imshow("window",cvframe) 
+
+
+
+
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+                #print(time.time()-t1)
+
+        if args.device == "picamera":
+            for cvframe in camera.capture_continuous(rawCapture,format="bgr",use_video_port=TRUE):
+                cvframe=cvframe.array
             
-            
-            ret, cvframe = video_capture.read()
-            #cvframe = cv2.cvtColor(cvframe, cv2.COLOR_BGR2GRAY)
-          
-            
-            small_cvframe = cv2.resize(cvframe, (0, 0), fx=0.25, fy=0.25)
-            rgb_small_cvframe = small_cvframe[:, :, ::-1]
-            tpre=time.time()
-            predictions = test_obj.predict(rgb_small_cvframe)
-            print("pred time",time.time()-tpre)
+              
+                #cvframe = cv2.cvtColor(cvframe, cv2.COLOR_BGR2GRAY)
+              
+                
+                small_cvframe = cv2.resize(cvframe, (0, 0), fx=0.25, fy=0.25)
+                rgb_small_cvframe = small_cvframe[:, :, ::-1]
+                tpre=time.time()
+                predictions = test_obj.predict(rgb_small_cvframe)
+                print("pred time",time.time()-tpre)
 
 
-            if len(predictions) != 0:
-                test_obj.show_box(cvframe, predictions) if args.mode =='test' else None
-                test_obj.show_snap(cvframe, predictions) if args.mode == 'snap' else None
+                if len(predictions) != 0:
+                    test_obj.show_box(cvframe, predictions) if args.mode =='test' else None
+                    test_obj.show_snap(cvframe, predictions) if args.mode == 'snap' else None
 
-            else:
-                cv2.imshow("window",cvframe) 
-
-
+                else:
+                    cv2.imshow("window",cvframe) 
 
 
 
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-            #print(time.time()-t1)
-
-
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+                #print(time.time()-t1)
 
 
