@@ -308,8 +308,8 @@ if __name__ == "__main__":
                     test_obj.show_box(cvframe, predictions) if args.mode =='test' else None
                     test_obj.show_snap(cvframe, predictions) if args.mode == 'snap' else None
 
-                else:
-                    cv2.imshow("window",cvframe) 
+                # else:
+                #     cv2.imshow("window",cvframe) 
 
 
 
@@ -337,8 +337,8 @@ if __name__ == "__main__":
                     test_obj.show_box(cvframe, predictions) if args.mode =='test' else None
                     test_obj.show_snap(cvframe, predictions) if args.mode == 'snap' else None
 
-                else:
-                    cv2.imshow("window",cvframe) 
+                # else:
+                #     cv2.imshow("window",cvframe) 
 
 
 
