@@ -282,8 +282,8 @@ if __name__ == "__main__":
             predictions = test_obj.predict(rgb_small_cvframe)
             print("pred time",time.time()-tpre)
 
-            
-            if len(predictions != 0):
+
+            if len(predictions) != 0:
                 test_obj.show_box(cvframe, predictions) if args.mode =='test' else None
                 test_obj.show_snap(cvframe, predictions) if args.mode == 'snap' else None
 
