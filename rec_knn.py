@@ -76,7 +76,7 @@ class testorsnap():
 
 
     def predict(self,img,distance_threshold=0.48): 
-        t1=time.time()       
+         
         X_face_locations = face_recognition.face_locations(img) 
     
         if len(X_face_locations) == 0:
@@ -270,20 +270,31 @@ if __name__ == "__main__":
         
         video_capture = cv2.VideoCapture(0)    
         while True:
-            t1=time.time()
+            
             
             ret, cvframe = video_capture.read()
+            #cvframe = cv2.cvtColor(cvframe, cv2.COLOR_BGR2GRAY)
           
             
             small_cvframe = cv2.resize(cvframe, (0, 0), fx=0.25, fy=0.25)
             rgb_small_cvframe = small_cvframe[:, :, ::-1]
-            
+            tpre=time.time()
             predictions = test_obj.predict(rgb_small_cvframe)
-        
-            test_obj.show_box(cvframe, predictions) if args.mode =='test' else None
-            test_obj.show_snap(cvframe, predictions) if args.mode == 'snap' else None
+            print("pred time",time.time()-tpre)
 
-            cv2.imshow("window",cvframe) if len(predictions) == 0 else None
+            
+            if len(predictions != 0):
+                test_obj.show_box(cvframe, predictions) if args.mode =='test' else None
+                test_obj.show_snap(cvframe, predictions) if args.mode == 'snap' else None
+
+            else:
+                cv2.imshow("window",cvframe) 
+
+
+
+
+
+
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
             #print(time.time()-t1)
