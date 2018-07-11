@@ -11,6 +11,7 @@ import cv2
 import numpy as np
 import csv
 from tools.save_csv import save_csv
+import io
 
 
 font=ImageFont.truetype("Tahoma Bold.ttf",40)
@@ -25,7 +26,7 @@ def train():
     verbose=True
     X = []
     y = []
-    n_neighbors=5
+    n_neighbors=2
     knn_algo='ball_tree'
     # Loop through each person in the training set
     for class_dir in os.listdir(train_dir):
@@ -61,7 +62,7 @@ class testorsnap():
         X= np.load('model/X.npy')
         y= np.load('model/y.npy')
 
-        self.knn_clf = neighbors.KNeighborsClassifier(n_neighbors=5, algorithm='ball_tree', weights='distance',n_jobs = 4)
+        self.knn_clf = neighbors.KNeighborsClassifier(n_neighbors=2, algorithm='ball_tree', weights='distance')
         self.knn_clf.fit(X, y)
 
         self.database_name=[]
@@ -85,7 +86,7 @@ class testorsnap():
         faces_encodings = face_recognition.face_encodings(img, known_face_locations=X_face_locations)
 
         # Use the KNN model to find the best matches for the test face
-        closest_distances = self.knn_clf.kneighbors(faces_encodings, n_neighbors=5)
+        closest_distances = self.knn_clf.kneighbors(faces_encodings, n_neighbors=2)
         are_matches = [closest_distances[0][i][0] <= distance_threshold for i in range(len(X_face_locations))]
         
 
@@ -250,17 +251,18 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     if args.device=="picamera":
-        from picamera.array import PIRGBArray
+        
+        from picamera.array import PiRGBArray
         from picamera import PiCamera
 
             
         
-        with picamera.PiCamera() as camera:
-            camera.resolution = (1024, 768)
-            rawCapture=PiRGBArray(camera)
+        camera=PiCamera() 
+        camera.resolution = (1024, 768)
+        rawCapture=PiRGBArray(camera)
 
 
-
+    print("using :",args.device)
     print("running : ",args.mode)
     print("memory : " ,args.disappear,'sec')
 
@@ -317,7 +319,7 @@ if __name__ == "__main__":
                 #print(time.time()-t1)
 
         if args.device == "picamera":
-            for cvframe in camera.capture_continuous(rawCapture,format="bgr",use_video_port=TRUE):
+            for cvframe in camera.capture_continuous(rawCapture,format="bgr",use_video_port=True):
                 cvframe=cvframe.array
             
               
@@ -340,7 +342,7 @@ if __name__ == "__main__":
 
 
 
-
+                rawCapture.truncate(0)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
                 #print(time.time()-t1)
