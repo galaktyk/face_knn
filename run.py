@@ -12,6 +12,9 @@ import numpy as np
 import csv
 from tools.save_csv import save_csv
 import io
+import traceback
+import sys
+
 
 
 font=ImageFont.truetype("Tahoma Bold.ttf",40)
@@ -201,7 +204,7 @@ class testorsnap():
                 
                 imbase = cv2.imread('train_images/'+name+'/'+name+'.jpg')                   
                 imbase = cv2.resize(imbase,(400,400))
-                
+                started=1
                 imbase = np.concatenate((imbase,np.zeros((112,400,3))), axis=0) 
                 imbase = Image.fromarray(imbase.astype('uint8'))  
                 
@@ -213,7 +216,8 @@ class testorsnap():
                 textdname=(name+"   "+self.database_bday[index])
                 draw.text((2, 400),textdname, font=font, fill=(255,255,255))
                 
-                draw.text((2, 460),self.database_food[index], font=font, fill=(255,255,255))
+                textfood=(self.database_food[index]+"    ")
+                draw.text((2, 460),textfood, font=font, fill=(255,255,255))
 
                 imbase = np.asarray(imbase) 
                 
@@ -244,9 +248,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='face_recognition using dlib and KNN')
     parser.add_argument('--mode',default='snap',help='train or test (use test by default)')  
     parser.add_argument('--disappear',default=420,help='memory time(in sec)') 
-    parser.add_argument('--device',default="webcam",help='use camera') 
+    parser.add_argument('--device',default="picamera",help='use camera') 
 
-
+    started=0
 
     
     args = parser.parse_args()
@@ -258,7 +262,8 @@ if __name__ == "__main__":
             
         
         camera=PiCamera() 
-        camera.resolution = (1024, 768)
+        #camera.resolution = (1024, 768)
+        camera.rotation=90
         rawCapture=PiRGBArray(camera)
 
 
@@ -308,8 +313,8 @@ if __name__ == "__main__":
                     test_obj.show_box(cvframe, predictions) if args.mode =='test' else None
                     test_obj.show_snap(cvframe, predictions) if args.mode == 'snap' else None
 
-                # else:
-                #     cv2.imshow("window",cvframe) 
+                elif started ==0:
+                    cv2.imshow("window",cvframe) 
 
 
 
@@ -319,32 +324,40 @@ if __name__ == "__main__":
                 #print(time.time()-t1)
 
         if args.device == "picamera":
-            for cvframe in camera.capture_continuous(rawCapture,format="bgr",use_video_port=True):
-                cvframe=cvframe.array
+
+            try:
+
+                for cvframe in camera.capture_continuous(rawCapture,format="bgr",use_video_port=True):
+                    cvframe=cvframe.array
             
               
                 #cvframe = cv2.cvtColor(cvframe, cv2.COLOR_BGR2GRAY)
               
                 
-                small_cvframe = cv2.resize(cvframe, (0, 0), fx=0.25, fy=0.25)
-                rgb_small_cvframe = small_cvframe[:, :, ::-1]
-                tpre=time.time()
-                predictions = test_obj.predict(rgb_small_cvframe)
-                print("pred time",time.time()-tpre)
+                    small_cvframe = cv2.resize(cvframe, (0, 0), fx=0.25, fy=0.25)
+                    rgb_small_cvframe = small_cvframe[:, :, ::-1]
+                    tpre=time.time()
+                    predictions = test_obj.predict(rgb_small_cvframe)
+                    print("pred time",time.time()-tpre)
 
 
-                if len(predictions) != 0:
-                    test_obj.show_box(cvframe, predictions) if args.mode =='test' else None
-                    test_obj.show_snap(cvframe, predictions) if args.mode == 'snap' else None
+                    if len(predictions) != 0:
+                        started=1
+                        test_obj.show_box(cvframe, predictions) if args.mode =='test' else None
+                        test_obj.show_snap(cvframe, predictions) if args.mode == 'snap' else None
 
-                # else:
-                #     cv2.imshow("window",cvframe) 
+                    elif started == 0:
+                        cv2.imshow("window",cvframe) 
 
 
 
-                rawCapture.truncate(0)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-                #print(time.time()-t1)
-
+                    rawCapture.truncate(0)
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        break
+                    #print(time.time()-t1)
+            except Exception:
+                text_file=open("log.md","a")
+                text_file.write(str(time.strftime("\n\n%Y/%m/%d %H:%M:%S\n",time.localtime())))
+                text_file.write(traceback.format_exc())
+                text_file.close()
 
