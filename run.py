@@ -17,6 +17,7 @@ import sys
 
 
 
+
 font=ImageFont.truetype("Tahoma Bold.ttf",40)
 font_s=ImageFont.truetype("Tahoma Bold.ttf",20)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -221,13 +222,18 @@ class testorsnap():
 
                 imbase = np.asarray(imbase) 
                 
-               
-                fullim = np.concatenate((impred,imbase), axis=1) 
+                print(name)               
+                fullim = np.concatenate((impred,imbase), axis=1)
+                if name == "unknown":
+                    picname=("/home/pi/face_knn/unknownface/"+str(time.time())+".jpg")
+                    cv2.imwrite(picname, impred)
+ 
             
                 if name not in [item[0] for item in self.oldname]:
                     record=[time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()), name]
                     csv_obj.save_this(record)
                     self.oldname.append((name,time.time()))
+
                 else:
                     inx=[item[0] for item in self.oldname].index(name)
                     self.oldname.pop(inx)
@@ -329,14 +335,18 @@ if __name__ == "__main__":
 
                 for cvframe in camera.capture_continuous(rawCapture,format="bgr",use_video_port=True):
                     cvframe=cvframe.array
-            
+                    alpha=2
+                    beta=35
+                    cvframe = cv2.addWeighted(cvframe,alpha,np.zeros(cvframe.shape,cvframe.dtype),0,beta)
+                   
               
-                #cvframe = cv2.cvtColor(cvframe, cv2.COLOR_BGR2GRAY)
-              
-                
-                    small_cvframe = cv2.resize(cvframe, (0, 0), fx=0.25, fy=0.25)
-                    rgb_small_cvframe = small_cvframe[:, :, ::-1]
+                                   
+                    rgb_small_cvframe = cv2.resize(cvframe, (0, 0), fx=0.25, fy=0.25)
+                  
+                    
                     tpre=time.time()
+
+                   
                     predictions = test_obj.predict(rgb_small_cvframe)
                     print("pred time",time.time()-tpre)
 
