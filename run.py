@@ -371,4 +371,11 @@ if __name__ == "__main__":
                 text_file.write(str(time.strftime("\n\n%Y/%m/%d %H:%M:%S\n",time.localtime())))
                 text_file.write(traceback.format_exc())
                 text_file.close()
-
+                pass
+            except AssertionError:
+                text_file=open("log.md","a")
+                text_file.write(str(time.strftime("\n\n%Y/%m/%d %H:%M:%S\n",time.localtime())))
+                text_file.write(traceback.format_exc())
+                text_file.close()
+                pass
+   
