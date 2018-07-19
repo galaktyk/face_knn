@@ -22,7 +22,12 @@ font=ImageFont.truetype("Tahoma Bold.ttf",40)
 font_s=ImageFont.truetype("Tahoma Bold.ttf",20)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-
+def adjust_gamma(image, gamma=1.0):
+    
+    invGamma = 1.0 / gamma
+    table = np.array([((i / 255.0) ** invGamma) * 255
+    for i in np.arange(0, 256)]).astype("uint8")    
+    return cv2.LUT(image, table)
 
 
 def train():
@@ -252,6 +257,14 @@ class testorsnap():
 
 if __name__ == "__main__":
 
+
+
+
+
+
+
+
+
     parser = argparse.ArgumentParser(description='face_recognition using dlib and KNN')
     parser.add_argument('--mode',default='snap',help='train or test (use test by default)')  
     parser.add_argument('--disappear',default=420,help='memory time(in sec)') 
@@ -336,11 +349,11 @@ if __name__ == "__main__":
 
                 for cvframe in camera.capture_continuous(rawCapture,format="bgr",use_video_port=True):
                     cvframe=cvframe.array
-                    alpha=2
-                    beta=35
-                    cvframe = cv2.addWeighted(cvframe,alpha,np.zeros(cvframe.shape,cvframe.dtype),0,beta)
+                    
+
+
                    
-              
+                    cvframe = adjust_gamma(cvframe, gamma=1.8)
                                    
                     rgb_small_cvframe = cv2.resize(cvframe, (0, 0), fx=0.25, fy=0.25)
                   
