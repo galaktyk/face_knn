@@ -281,8 +281,7 @@ if __name__ == "__main__":
     csv_obj=save_csv() 
 
 
-    cv2.namedWindow("window", cv2.WND_PROP_FULLSCREEN)
-    cv2.setWindowProperty("window",cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
+
 
 
 
@@ -294,7 +293,8 @@ if __name__ == "__main__":
         print('complete! : ',time.time()-t1)
 
     else:      
-
+        cv2.namedWindow("window", cv2.WND_PROP_FULLSCREEN)
+        cv2.setWindowProperty("window",cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
 
         test_obj=testorsnap(args)
 
