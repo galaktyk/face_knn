@@ -30,7 +30,7 @@ def train():
     verbose=True
     X = []
     y = []
-    n_neighbors=2
+    n_neighbors=3
     knn_algo='ball_tree'
     # Loop through each person in the training set
     for class_dir in os.listdir(train_dir):
@@ -66,7 +66,7 @@ class testorsnap():
         X= np.load('model/X.npy')
         y= np.load('model/y.npy')
 
-        self.knn_clf = neighbors.KNeighborsClassifier(n_neighbors=2, algorithm='ball_tree', weights='distance')
+        self.knn_clf = neighbors.KNeighborsClassifier(n_neighbors=3, algorithm='ball_tree', weights='distance')
         self.knn_clf.fit(X, y)
 
         self.database_name=[]
@@ -90,7 +90,7 @@ class testorsnap():
         faces_encodings = face_recognition.face_encodings(img, known_face_locations=X_face_locations)
 
         # Use the KNN model to find the best matches for the test face
-        closest_distances = self.knn_clf.kneighbors(faces_encodings, n_neighbors=2)
+        closest_distances = self.knn_clf.kneighbors(faces_encodings, n_neighbors=3)
         are_matches = [closest_distances[0][i][0] <= distance_threshold for i in range(len(X_face_locations))]
         
 
@@ -203,7 +203,8 @@ class testorsnap():
             
                 ######################### ____________ ##########################
                 
-                imbase = cv2.imread('train_images/'+name+'/'+name+'.jpg')                   
+                imbase = cv2.imread('train_images/'+name+'/'+name+'.jpg')  
+                print(name)                 
                 imbase = cv2.resize(imbase,(400,400))
                 started=1
                 imbase = np.concatenate((imbase,np.zeros((112,400,3))), axis=0) 
@@ -260,7 +261,7 @@ if __name__ == "__main__":
 
     
     args = parser.parse_args()
-    if args.device=="picamera":
+    if (args.device=='picamera') and (args.mode != 'train'):
         
         from picamera.array import PiRGBArray
         from picamera import PiCamera
