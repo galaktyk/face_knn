@@ -14,7 +14,7 @@ from tools.save_csv import save_csv
 import io
 import traceback
 import sys
-
+import glob
 
 
 
@@ -85,7 +85,7 @@ class testorsnap():
                 self.database_food.append(row[2]) 
 
 
-    def predict(self,img,distance_threshold=0.48): 
+    def predict(self,img,distance_threshold=0.46): 
          
         X_face_locations = face_recognition.face_locations(img) 
     
@@ -231,8 +231,33 @@ class testorsnap():
                 print(name)               
                 fullim = np.concatenate((impred,imbase), axis=1)
                 if name == "unknown":
-                    picname=("/home/pi/face_knn/unknownface/"+str(time.time())+".jpg")
-                    cv2.imwrite(picname, impred)
+                    #picname=("/home/pi/face_knn/unknownface/"+str(time.time())+".jpg")
+                    
+                    ls = [os.path.basename(x) for x in glob.glob('unknownface/*.jpg')]
+
+                    if len(ls) > 0:
+                        ls=sorted(ls)
+
+                        lastname=ls[-1]
+                        lastname=lastname.split('.')[0]
+
+                        picname=str(int(lastname)+1)+'.jpg'
+    
+                    else:
+                        picname = '1.jpg'
+
+
+                    cv2.imwrite('unknownface/'+picname, impred)
+		# now clear old jpg
+                    if len(ls)>5000:
+                        dell=len(ls)-5000
+                        listtodell=ls[0:dell]
+                        for item in listtodell:
+                            os.remove('unknownface/'+item)
+
+
+
+
  
             
                 if name not in [item[0] for item in self.oldname]:
@@ -353,7 +378,7 @@ if __name__ == "__main__":
 
 
                    
-                    cvframe = adjust_gamma(cvframe, gamma=1.8)
+                    cvframe = adjust_gamma(cvframe, gamma=2.2)
                                    
                     rgb_small_cvframe = cv2.resize(cvframe, (0, 0), fx=0.25, fy=0.25)
                   
